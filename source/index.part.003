@@ -1,0 +1,30 @@
+dal{width:min(780px,96vw);max-height:92vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:28px;box-shadow:0 35px 90px rgba(0,0,0,.34)}
+    .modal-header{padding:22px 24px;background:linear-gradient(135deg,#07594f,#0b8070);color:#fff;position:sticky;top:0;z-index:2}.modal-header h3{margin:5px 0 0;font-size:24px}.close{float:left;background:rgba(255,255,255,.13);color:#fff;border:0;width:38px;height:38px;border-radius:12px}.modal-body{padding:23px}.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.detail-box{padding:13px;background:rgba(15,117,104,.07);border:1px solid var(--line);border-radius:15px}.detail-box small{color:var(--muted);display:block;margin-bottom:6px}.detail-box strong{font-size:14px}
+    .execution-path{margin:22px 0}.execution-path .track{height:18px;background:linear-gradient(270deg,#19866a 0 45%,#e1b14d 45% 68%,#dc7a2c 68% 85%,#c94343 85%);border-radius:999px;position:relative}.execution-path .marker{position:absolute;top:-8px;width:4px;height:34px;background:var(--text);border-radius:4px}.execution-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px}
+    .checklist{display:grid;gap:9px}.check-item{display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px}.check-item input{width:18px;height:18px;accent-color:var(--primary)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:var(--muted)}.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--text);outline:none}.field textarea{min-height:90px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,145,127,.12)}
+    .toast{position:fixed;left:24px;bottom:24px;background:#082f29;color:#fff;padding:13px 17px;border-radius:14px;box-shadow:var(--shadow);opacity:0;transform:translateY(20px);pointer-events:none;transition:.25s;z-index:160}.toast.show{opacity:1;transform:translateY(0)}
+    .empty{text-align:center;padding:40px;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
+    .mobile-nav{display:none}
+    @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.dashboard,.lower{grid-template-columns:1fr}.main{padding-right:90px}.sidebar{width:230px}.app{grid-template-columns:230px 1fr}.ticker{right:246px}.focus-title,.focus-reason{max-width:100%}}
+    @media(max-width:780px){
+      .app{display:block}.sidebar{display:none}.main{padding:18px 16px 95px}.ticker{right:12px;left:12px;top:auto;bottom:72px;transform:none;width:auto;height:54px;border-radius:18px}.ticker-head{display:none}.ticker-track{height:100%}.ticker-inner{flex-direction:row;align-items:center;height:100%;padding:0 18px;gap:38px;animation:horizontalTicker 20s linear infinite;width:max-content}.ticker-item{writing-mode:horizontal-tb;transform:none}.kpis{grid-template-columns:1fr 1fr}.topbar{align-items:flex-start;flex-direction:column}.detail-grid{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.task-row{grid-template-columns:auto 1fr auto}.progress-mini{display:none}.mobile-nav{position:fixed;display:flex;left:10px;right:10px;bottom:9px;height:56px;border-radius:18px;background:#073e36;color:#fff;z-index:80;align-items:center;justify-content:space-around;box-shadow:0 15px 35px rgba(0,0,0,.28)}.mobile-nav button{border:0;background:transparent;color:#d8f2ec;font-size:20px}.focus-card{min-height:auto}.focus-title{font-size:25px}
+    }
+    @keyframes horizontalTicker{0%{transform:translateX(0)}100%{transform:translateX(55%)}}
+    @media(max-width:520px){.kpis{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.metric-line{grid-template-columns:105px 1fr 42px}.top-actions .btn:not(.primary){display:none}}
+    @media print{
+      body{background:#fff;color:#111}.sidebar,.ticker,.topbar,.mobile-nav,.focus-actions,.filters,.report-actions{display:none!important}.app{display:block}.main{padding:0;max-width:none}.card{box-shadow:none;background:#fff;border:1px solid #ccd7d2}.dashboard,.lower{grid-template-columns:1fr 1fr}.tasks-section{break-inside:avoid}.focus-card{background:#0d5f54!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.kpis{grid-template-columns:repeat(4,1fr)}
+    }
+  </style>
+
+  <meta name="application-name" content="نبض التنفيذ" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="نبض التنفيذ" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+</head>
+<body>
+<div class="app">
+  <aside cl
