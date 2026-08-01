@@ -1,0 +1,45 @@
+e="detailModal">×</button><div class="eyebrow">البطاقة التنفيذية</div><h3 id="detailTitle"></h3></div><div class="modal-body" id="detailBody"></div></div></div>
+
+<div class="modal-backdrop" id="addModal"><div class="modal"><div class="modal-header"><button class="close" data-close="addModal">×</button><div class="eyebrow">إضافة أو تحديث</div><h3>مهمة تنفيذية جديدة</h3></div><div class="modal-body">
+  <form id="taskForm" class="form-grid">
+    <div class="field full"><label>عنوان المهمة</label><input id="fTitle" required placeholder="مثال: مراجعة التقرير التنفيذي" /></div>
+    <div class="field"><label>المشروع / الجهة</label><input id="fProject" placeholder="المشروع المرتبط" /></div>
+    <div class="field"><label>الأولوية</label><select id="fPriority"><option value="high">عالية</option><option value="medium" selected>متوسطة</option><option value="low">منخفضة</option></select></div>
+    <div class="field"><label>وقت البدء</label><input id="fTime" type="time" required /></div>
+    <div class="field"><label>المدة بالدقائق</label><input id="fDuration" type="number" min="5" step="5" value="45" required /></div>
+    <div class="field"><label>الموعد النهائي</label><input id="fDeadline" type="datetime-local" /></div>
+    <div class="field"><label>الحالة</label><select id="fStatus"><option value="active">جارٍ</option><option value="waiting">بانتظار</option><option value="done">مكتمل</option></select></div>
+    <div class="field full"><label>التفاصيل التنفيذية</label><textarea id="fDetails" placeholder="الغاية، السياق، المطلوب، الأطراف المرتبطة..."></textarea></div>
+    <div class="field full"><label>الخطوات الفرعية (افصل بينها بعلامة | )</label><input id="fSteps" placeholder="جمع البيانات | المراجعة | الاعتماد | الإرسال" /></div>
+    <div class="field full"><button class="btn primary" type="submit">حفظ المهمة</button></div>
+  </form>
+</div></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY='nabd_tasks_v1';
+const themeKey='nabd_theme';
+const storageGet=k=>{try{return localStorage.getItem(k)}catch{return null}};
+const storageSet=(k,v)=>{try{localStorage.setItem(k,v);window.dispatchEvent(new CustomEvent('nabd:storage',{detail:{key:k,value:v}}))}catch{}};
+const state={filter:'all',selected:null,focusTimer:null,focusSeconds:0};
+const now=new Date();
+const pad=n=>String(n).padStart(2,'0');
+const localDate=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const timeString=(h,m=0)=>`${pad(h)}:${pad(m)}`;
+const isoLocal=(h,m=0)=>`${localDate()}T${timeString(h,m)}`;
+const dateOffset=d=>new Date(Date.now()+d*86400000).toISOString();
+const uid=()=>globalThis.crypto?.randomUUID?.()||('t_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10));
+
+const seedTasks=[
+ {id:uid(),title:'مراجعة التقرير التنفيذي',project:'مشروع التحول المؤسسي',priority:'high',time:'09:30',duration:50,deadline:isoLocal(11,30),status:'active',progress:35,details:'مراجعة المؤشرات والنتائج وصياغة الملاحظات النهائية قبل الإرسال إلى الإدارة.',steps:[{t:'مراجعة المؤشرات',d:true},{t:'تدقيق الملخص التنفيذي',d:false},{t:'اعتماد النسخة',d:false},{t:'إرسال التقرير',d:false}],result:false,createdAt:dateOffset(-2),completedAt:null},
+ {id:uid(),title:'متابعة اعتماد العرض المالي',project:'فرح التنمية',priority:'medium',time:'11:15',duration:25,deadline:isoLocal(14,0),status:'waiting',progress:55,details:'التواصل مع المسؤول عن الاعتماد وتحديث حالة العرض وتوثيق القرار.',steps:[{t:'إرسال التذكير',d:true},{t:'استلام الملاحظات',d:false},{t:'تحديث العرض',d:false}],result:false,createdAt:dateOffset(-5),completedAt:null},
+ {id:uid(),title:'جلسة تطوير المنصة',project:'نبض التنفيذ',priority:'high',time:'14:00',duration:90,deadline:isoLocal(17,0),status:'active',progress:20,details:'تنفيذ النسخة التجريبية وتحسين تجربة المستخدم وتدقيق حالات الاستخدام الأساسية.',steps:[{t:'تطوير الواجهة',d:true},{t:'اختبار الوظائف',d:false},{t:'تحسين الاستجابة',d:false}],result:false,createdAt:dateOffset(-10),completedAt:null},
+ {id:uid(),title:'إرسال ملخص اليوم للفريق',project:'إدارة العمليات',priority:'low',time:'17:30',duration:20,deadline:isoLocal(18,0),status:'done',progress:100,details:'تلخيص ما تم، التعثرات، والقرارات المطلوبة لليوم التالي.',steps:[{t:'جمع التحديثات',d:true},{t:'صياغة الملخص',d:true},{t:'الإرسال',d:true}],result:true,createdAt:dateOffset(-18),completedAt:dateOffset(-1)}
+];
+let tasks=JSON.parse(storageGet(STORAGE_KEY)||'null')||seedTasks;
+tasks=tasks.map(t=>({...t,createdAt:t.createdAt||new Date().toISOString(),completedAt:t.completedAt||null}));
+function save(){storageSet(STORAGE_KEY,JSON.stringify(tasks));renderAll()}
+function fmtDate(){return new Intl.DateTimeFormat('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(new Date())}
+function fmtTime(t){if(!t)return'—';let [h,m]=t.split(':').map(Number);return new Intl.DateTimeFormat('ar-SA',{hour:'numeric',minute:'2-digit'}).format(new Date(2020,1,1,h,m))}
+function prioLabel(p){return p==='high'?'عالية':p==='medium'?'متوسطة':'منخفضة'}
