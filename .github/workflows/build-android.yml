@@ -1,0 +1,68 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Reconstruct application entry file
+        run: cat source/index.part.* > index.html
+
+      - name: Verify reconstructed HTML
+        run: |
+          test -s index.html
+          grep -q "نبض التنفيذ" index.html
+          grep -q "native-bridge.js" index.html
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Generate Android icon and splash assets
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#eef4f1' --iconBackgroundColorDark '#0b2f2b' --splashBackgroundColor '#eef4f1' --splashBackgroundColorDark '#0b2f2b'
+
+      - name: Sync native project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NabdExecution-Android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
