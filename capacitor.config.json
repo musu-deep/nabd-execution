@@ -1,0 +1,19 @@
+{
+  "appId": "com.nabd.execution",
+  "appName": "نبض التنفيذ",
+  "webDir": "dist",
+  "backgroundColor": "#eef4f1",
+  "android": {
+    "backgroundColor": "#eef4f1",
+    "allowMixedContent": false
+  },
+  "ios": {
+    "backgroundColor": "#eef4f1",
+    "contentInset": "automatic"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "sound": "beep.wav"
+    }
+  }
+}
