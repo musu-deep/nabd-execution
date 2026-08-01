@@ -1,0 +1,72 @@
+ass="sidebar">
+    <div class="brand"><div class="brand-mark">ن</div><div><h1>نبض التنفيذ</h1><small>مهمتك أمامك</small></div></div>
+    <div class="nav">
+      <button class="active" data-scroll="home"><span class="ico">◉</span>لوحة اليوم</button>
+      <button data-scroll="tasks"><span class="ico">✓</span>المهام</button>
+      <button data-scroll="timeline"><span class="ico">◷</span>المسار الزمني</button>
+      <button data-scroll="reports"><span class="ico">▥</span>التقارير</button>
+      <button id="openAddSide"><span class="ico">＋</span>إضافة مهمة</button>
+    </div>
+    <div class="side-stat"><small>مؤشر الانضباط الأسبوعي</small><strong id="disciplineSide">84%</strong><small>تحسن ملحوظ عن الأسبوع الماضي</small></div>
+  </aside>
+
+  <main class="main" id="home">
+    <header class="topbar">
+      <div class="welcome"><h2>صباح الإنجاز 👋</h2><p id="todayLabel"></p></div>
+      <div class="top-actions">
+        <button class="btn" id="themeBtn">◐ المظهر</button>
+        <button class="btn" id="notifyBtn">🔔 التنبيهات</button>
+        <button class="btn" id="exportBtn">⇩ تصدير البيانات</button>
+        <button class="btn primary" id="openAdd">＋ مهمة جديدة</button>
+      </div>
+    </header>
+
+    <section class="grid kpis">
+      <article class="card kpi"><div class="label">المهام المكتملة اليوم</div><div class="value" id="doneKpi">0</div><div class="trend">↑ يتحسن مع كل إغلاق حقيقي</div></article>
+      <article class="card kpi"><div class="label">الالتزام بالمواعيد</div><div class="value" id="onTimeKpi">0%</div><div class="trend">مؤشر زمني ديناميكي</div></article>
+      <article class="card kpi"><div class="label">وقت العمل المركز</div><div class="value" id="focusKpi">0س</div><div class="trend">وقت فعلي مقدّر</div></article>
+      <article class="card kpi"><div class="label">النتائج المحققة</div><div class="value" id="resultsKpi">0</div><div class="trend">ليست كل مهمة نتيجة</div></article>
+    </section>
+
+    <section class="grid dashboard">
+      <article class="card focus-card">
+        <div class="eyebrow">ماذا تنفذ الآن؟</div>
+        <div class="focus-title" id="focusTitle">لا توجد مهمة حالية</div>
+        <div class="focus-reason" id="focusReason">أضف مهمة جديدة وسيختار النظام الأنسب للتنفيذ اعتماداً على الأولوية والموعد.</div>
+        <div class="focus-meta" id="focusMeta"></div>
+        <div class="focus-actions">
+          <button class="btn" id="startFocus">▶ ابدأ جلسة تركيز</button>
+          <button class="btn alt" id="focusDetails">عرض التفاصيل</button>
+          <button class="btn alt" id="completeFocus">تم الإنجاز</button>
+        </div>
+      </article>
+      <article class="card capacity">
+        <div class="section-title"><div><h3>سعة اليوم</h3><small>مقارنة حجم المهام بالوقت المتاح</small></div><span id="capacityState">مريح</span></div>
+        <div class="gauge-wrap"><div class="gauge" id="gauge"><div class="inside"><strong id="capacityValue">0%</strong><small>من السعة المتاحة</small></div></div></div>
+        <div class="capacity-note" id="capacityNote">أضف المهام ومددها ليحسب النظام ضغط اليوم ويقترح التحسين.</div>
+      </article>
+    </section>
+
+    <section class="card tasks-section" id="tasks">
+      <div class="section-title"><div><h3>مهام اليوم</h3><small>الأولوية، الوقت المتبقي، ونسبة التقدم</small></div><div class="filters"><button class="filter active" data-filter="all">الكل</button><button class="filter" data-filter="active">جارٍ</button><button class="filter" data-filter="waiting">بانتظار</button><button class="filter" data-filter="done">مكتمل</button></div></div>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <section class="grid lower">
+      <article class="card timeline-card" id="timeline">
+        <div class="section-title"><div><h3>المسار الزمني لليوم</h3><small>تتابع التنفيذ ونقاط الضغط</small></div></div>
+        <div class="timeline" id="timelineList"></div>
+      </article>
+      <article class="card report-card" id="reports">
+        <div class="section-title"><div><h3>تقرير الأداء</h3><small>ملخص قابل للمشاركة والطباعة</small></div><select id="reportPeriod" class="btn"><option value="week">أسبوعي</option><option value="month">شهري</option></select></div>
+        <div class="report-bars" id="reportBars"></div>
+        <div class="report-actions"><button class="btn primary" id="shareBtn">مشاركة التقرير</button><button class="btn" id="printBtn">طباعة / PDF</button><button class="btn" id="copyBtn">نسخ الملخص</button></div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<aside class="ticker" aria-label="شريط المهام المتحرك"><div class="ticker-head">◷</div><div class="ticker-track"><div class="ticker-inner" id="tickerInner"></div></div></aside>
+<nav class="mobile-nav"><button data-scroll="home">⌂</button><button data-scroll="tasks">✓</button><button id="openAddMobile">＋</button><button data-scroll="reports">▥</button></nav>
+
+<div class="modal-backdrop" id="detailModal"><div class="modal"><div class="modal-header"><button class="close" data-clos
