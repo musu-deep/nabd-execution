@@ -4,8 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "prepare:index": "node scripts/reconstruct-index.mjs",
+    "predev": "npm run prepare:index",
     "dev": "vite",
+    "prebuild": "npm run prepare:index",
     "build": "vite build",
+    "prepreview": "npm run prepare:index",
     "preview": "vite preview",
     "android:add": "npm run build && npx cap add android",
     "android:sync": "npm run build && npx cap sync android",
