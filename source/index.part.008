@@ -1,0 +1,42 @@
+-new Date())/60000);
+  const kind=deadline!==null&&deadline>=0&&deadline<=15?'deadline':startMin>=0&&startMin<=5?'start':null;
+  const key=`${localDate()}_${t.id}_${kind}`;
+  if(kind&&!notified.has(key)){
+   notified.add(key);
+   const n=new Notification(kind==='deadline'?'موعد مهمة يقترب':'حان وقت المهمة',{body:`${t.title} • ${kind==='deadline'?remainingLabel(deadline):fmtTime(t.time)}`,tag:key});
+   n.onclick=()=>{window.focus();openDetail(t.id)};
+  }
+ })
+}
+setInterval(checkReminders,30000);
+
+// events
+document.getElementById('todayLabel').textContent=fmtDate();
+document.querySelectorAll('[data-scroll]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.scroll)?.scrollIntoView({behavior:'smooth'}));
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.close).classList.remove('open'));
+[detailModal,addModal].forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove('open')});
+openAdd.onclick=openAddModal;openAddSide.onclick=openAddModal;openAddMobile.onclick=openAddModal;notifyBtn.onclick=enableNotifications;
+document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;renderTasks()});
+taskForm.onsubmit=e=>{e.preventDefault();const steps=fSteps.value.split('|').map(s=>s.trim()).filter(Boolean).map(t=>({t,d:false}));const data={title:fTitle.value.trim(),project:fProject.value.trim(),priority:fPriority.value,time:fTime.value,duration:+fDuration.value,deadline:fDeadline.value,status:fStatus.value,details:fDetails.value.trim(),steps,progress:fStatus.value==='done'?100:0,result:fStatus.value==='done',createdAt:new Date().toISOString(),completedAt:fStatus.value==='done'?new Date().toISOString():null};const id=taskForm.dataset.edit;if(id){const old=tasks.find(t=>t.id===id);data.createdAt=old.createdAt||data.createdAt;Object.assign(old,data)}else tasks.push({id:uid(),...data});save();addModal.classList.remove('open');toast(id?'تم تحديث المهمة':'تمت إضافة المهمة')};
+focusDetails.onclick=()=>state.selected&&openDetail(state.selected);
+completeFocus.onclick=()=>{const t=tasks.find(x=>x.id===state.selected);if(t){t.status='done';t.progress=100;t.result=true;t.completedAt=new Date().toISOString();t.steps=t.steps.map(s=>({...s,d:true}));save();toast('ممتاز! تم إغلاق المهمة')}};
+startFocus.onclick=()=>{const t=tasks.find(x=>x.id===state.selected);if(!t)return;if(state.focusTimer){clearInterval(state.focusTimer);state.focusTimer=null;startFocus.textContent='▶ استئناف التركيز';toast('تم إيقاف الجلسة مؤقتاً');return}state.focusTimer=setInterval(()=>{state.focusSeconds++;const m=Math.floor(state.focusSeconds/60),s=state.focusSeconds%60;startFocus.textContent=`■ ${pad(m)}:${pad(s)}`},1000);toast('بدأت جلسة التركيز')};
+printBtn.onclick=()=>window.print();
+copyBtn.onclick=async()=>{await navigator.clipboard.writeText(reportText());toast('تم نسخ ملخص التقرير')};
+shareBtn.onclick=async()=>{const text=reportText();if(navigator.share){await navigator.share({title:'تقرير نبض التنفيذ',text})}else{await navigator.clipboard.writeText(text);toast('تم نسخ التقرير للمشاركة')}};
+exportBtn.onclick=()=>{const blob=new Blob([JSON.stringify(tasks,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nabd-tasks.json';a.click();URL.revokeObjectURL(a.href)};
+themeBtn.onclick=()=>{document.body.classList.toggle('dark');storageSet(themeKey,document.body.classList.contains('dark')?'dark':'light')};
+if(storageGet(themeKey)==='dark')document.body.classList.add('dark');
+reportPeriod.onchange=()=>{renderReport();toast(reportPeriod.value==='week'?'تم احتساب التقرير الأسبوعي':'تم احتساب التقرير الشهري')};
+renderAll();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+<script type="module" src="/src/native-bridge.js"></script>
+
+</body>
+</html>
