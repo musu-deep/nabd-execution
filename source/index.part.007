@@ -1,0 +1,54 @@
+th)*100);
+ const focus=Math.min(100,Math.round(base.reduce((sum,t)=>sum+t.progress,0)/Math.max(1,base.length)));
+ const results=Math.min(100,Math.round(base.filter(t=>t.result||t.status==='done').length/Math.max(1,base.length)*100));
+ return {completion,timing,focus,results,total:base.length};
+}
+function renderReport(){const r=reportData();reportBars.innerHTML=metric('إنجاز المهام',r.completion)+metric('الالتزام الزمني',r.timing)+metric('التقدم التنفيذي',r.focus)+metric('تحقق النتائج',r.results)}
+function renderAll(){renderKPIs();renderCapacity();renderFocus();renderTasks();renderTimeline();renderTicker();renderReport()}
+
+function openDetail(id){
+ const t=tasks.find(x=>x.id===id);if(!t)return;state.selected=id;detailTitle.textContent=t.title;
+ const rem=minutesRemaining(t);const safe=Math.max(8,Math.min(92,rem===null?35:100-Math.max(0,Math.min(100,rem/600*100))));
+ detailBody.innerHTML=`
+ <div class="detail-grid">
+  <div class="detail-box"><small>المشروع</small><strong>${t.project||'غير محدد'}</strong></div>
+  <div class="detail-box"><small>الأولوية</small><strong>${prioLabel(t.priority)}</strong></div>
+  <div class="detail-box"><small>الحالة</small><strong>${statusLabel(t.status)}</strong></div>
+  <div class="detail-box"><small>وقت البدء</small><strong>${fmtTime(t.time)}</strong></div>
+  <div class="detail-box"><small>المدة المقدرة</small><strong>${t.duration} دقيقة</strong></div>
+  <div class="detail-box"><small>الوقت المتبقي</small><strong>${remainingLabel(rem)}</strong></div>
+ </div>
+ <div class="execution-path"><div class="section-title"><h3>مسار الوقت التنفيذي</h3><small>${t.progress}% من المهمة</small></div><div class="track"><i class="marker" style="right:${safe}%"></i></div><div class="execution-labels"><span>وقت آمن</span><span>بدء الضغط</span><span>منطقة الخطر</span><span>الموعد</span></div></div>
+ <p style="line-height:1.9;color:var(--muted)">${t.details||'لا توجد تفاصيل إضافية.'}</p>
+ <div class="section-title"><h3>الخطوات التنفيذية</h3><small>حدّثها أثناء العمل</small></div>
+ <div class="checklist">${t.steps.map((s,i)=>`<label class="check-item"><input type="checkbox" data-step="${i}" ${s.d?'checked':''}><span>${s.t}</span></label>`).join('')||'<div class="empty">لا توجد خطوات فرعية.</div>'}</div>
+ <div class="report-actions"><button class="btn primary" id="markDone">تسجيل الإنجاز</button><button class="btn" id="editTask">تعديل المهمة</button><button class="btn" id="deleteTask">حذف</button></div>`;
+ detailModal.classList.add('open');
+ detailBody.querySelectorAll('[data-step]').forEach(c=>c.onchange=()=>{t.steps[+c.dataset.step].d=c.checked;t.progress=Math.round(t.steps.filter(s=>s.d).length/Math.max(1,t.steps.length)*100);if(t.progress===100){t.status='done';t.result=true;t.completedAt=new Date().toISOString()}save();openDetail(id)});
+ document.getElementById('markDone').onclick=()=>{t.status='done';t.progress=100;t.result=true;t.completedAt=new Date().toISOString();t.steps=t.steps.map(s=>({...s,d:true}));save();detailModal.classList.remove('open');toast('تم تسجيل الإنجاز والنتيجة')};
+ document.getElementById('editTask').onclick=()=>editTask(t);
+ document.getElementById('deleteTask').onclick=()=>{if(confirm('حذف المهمة نهائياً؟')){tasks=tasks.filter(x=>x.id!==id);save();detailModal.classList.remove('open');toast('تم حذف المهمة')}};
+}
+function editTask(t){
+ detailModal.classList.remove('open');addModal.classList.add('open');
+ taskForm.dataset.edit=t.id;fTitle.value=t.title;fProject.value=t.project||'';fPriority.value=t.priority;fTime.value=t.time;fDuration.value=t.duration;fDeadline.value=t.deadline||'';fStatus.value=t.status;fDetails.value=t.details||'';fSteps.value=t.steps.map(s=>s.t).join(' | ');
+}
+function resetForm(){taskForm.reset();taskForm.dataset.edit='';fDuration.value=45;fPriority.value='medium';fStatus.value='active';fTime.value=timeString(Math.min(23,new Date().getHours()+1),0);fDeadline.value=''}
+function openAddModal(){resetForm();addModal.classList.add('open')}
+
+function reportText(){const r=reportData();return `تقرير نبض التنفيذ\nالتاريخ: ${fmtDate()}\nإجمالي المهام: ${tasks.length}\nالمكتمل: ${tasks.filter(t=>t.status==='done').length}\nإنجاز المهام: ${r.completion}%\nالالتزام الزمني: ${r.timing}%\nالتقدم التنفيذي: ${r.focus}%\nتحقق النتائج: ${r.results}%\n\nالتوصية: ${capacityNote.textContent}`}
+
+const notified=new Set();
+async function enableNotifications(){
+ if(!('Notification' in window)){toast('المتصفح لا يدعم التنبيهات');return}
+ const permission=await Notification.requestPermission();
+ if(permission==='granted'){notifyBtn.textContent='🔔 مفعّلة';toast('تم تفعيل تنبيهات المهام القريبة');checkReminders()}
+ else toast('لم يتم منح إذن التنبيهات');
+}
+function checkReminders(){
+ if(!('Notification' in window)||Notification.permission!=='granted')return;
+ tasks.filter(t=>t.status!=='done').forEach(t=>{
+  const deadline=minutesRemaining(t);
+  const [h,m]=(t.time||'00:00').split(':').map(Number);
+  const start=new Date();start.setHours(h,m,0,0);
+  const startMin=Math.round((start
