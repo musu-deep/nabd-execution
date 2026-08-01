@@ -1,0 +1,58 @@
+
+function statusLabel(s){return s==='done'?'مكتمل':s==='waiting'?'بانتظار':'جارٍ'}
+function minutesRemaining(task){if(!task.deadline)return null;return Math.round((new Date(task.deadline)-new Date())/60000)}
+function remainingLabel(m){if(m===null)return'دون موعد';if(m<0)return`متأخر ${Math.abs(m)} د`;if(m<60)return`${m} دقيقة`;return`${Math.floor(m/60)}س ${m%60}د`}
+function score(t){const p={high:300,medium:200,low:100}[t.priority];const rem=minutesRemaining(t);return p+(rem===null?0:Math.max(-200,180-rem))-t.progress}
+function bestTask(){return tasks.filter(t=>t.status!=='done').sort((a,b)=>score(b)-score(a))[0]||null}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
+
+function renderKPIs(){
+ const done=tasks.filter(t=>t.status==='done').length;
+ const timed=tasks.filter(t=>t.deadline);const onTime=timed.length?Math.round(timed.filter(t=>t.status==='done'||minutesRemaining(t)>=0).length/timed.length*100):100;
+ const focus=Math.round(tasks.filter(t=>t.status!=='waiting').reduce((s,t)=>s+t.duration*(t.progress/100),0)/60*10)/10;
+ const results=tasks.filter(t=>t.result||t.status==='done').length;
+ doneKpi.textContent=done;onTimeKpi.textContent=onTime+'%';focusKpi.textContent=focus+'س';resultsKpi.textContent=results;disciplineSide.textContent=onTime+'%';
+}
+function renderCapacity(){
+ const activeMinutes=tasks.filter(t=>t.status!=='done').reduce((s,t)=>s+t.duration*(1-t.progress/100),0);
+ const available=8*60;const pct=Math.min(160,Math.round(activeMinutes/available*100));
+ gauge.style.setProperty('--p',Math.min(100,pct));capacityValue.textContent=pct+'%';
+ let stateText='مريح',note='سعة اليوم جيدة؛ ابدأ بالأولوية الأعلى وحافظ على فترات التركيز.';
+ if(pct>100){stateText='حرج';note=`الحمل يتجاوز السعة بنحو ${pct-100}%. اقترح تفويض مهمة أو نقل الأقل قيمة.`}
+ else if(pct>75){stateText='مزدحم';note='اليوم قريب من الامتلاء. تجنّب إضافة اجتماعات أو مهام غير مخططة.'}
+ capacityState.textContent=stateText;capacityNote.textContent=note;
+}
+function renderFocus(){
+ const t=bestTask();state.selected=t?.id||null;
+ if(!t){focusTitle.textContent='أحسنت، لا توجد مهام معلقة';focusReason.textContent='راجع النتائج أو خطط لليوم التالي.';focusMeta.innerHTML='';return}
+ focusTitle.textContent=t.title;focusReason.textContent=t.details||'هذه المهمة هي الأعلى تأثيراً بحسب الأولوية والوقت المتبقي.';
+ focusMeta.innerHTML=`<span class="pill">${prioLabel(t.priority)} الأولوية</span><span class="pill">${remainingLabel(minutesRemaining(t))}</span><span class="pill">${t.duration} دقيقة</span><span class="pill">${t.project||'دون مشروع'}</span>`;
+}
+function renderTasks(){
+ const list=tasks.filter(t=>state.filter==='all'||t.status===state.filter).sort((a,b)=>a.time.localeCompare(b.time));
+ if(!list.length){taskList.innerHTML='<div class="empty">لا توجد مهام في هذا التصنيف.</div>';return}
+ taskList.innerHTML=list.map(t=>`<div class="task-row" data-id="${t.id}">
+   <div class="priority-dot p-${t.priority}"></div>
+   <div class="task-main"><h4>${t.title}</h4><p>${t.project||'مهمة شخصية'} • ${statusLabel(t.status)} • ${remainingLabel(minutesRemaining(t))}</p></div>
+   <div class="task-time"><strong>${fmtTime(t.time)}</strong><small>${t.duration} دقيقة</small></div>
+   <div class="progress-mini"><div class="bar"><span style="width:${t.progress}%"></span></div><small>${t.progress}%</small></div>
+ </div>`).join('');
+ document.querySelectorAll('.task-row').forEach(r=>r.onclick=()=>openDetail(r.dataset.id));
+}
+function renderTimeline(){
+ const list=[...tasks].sort((a,b)=>a.time.localeCompare(b.time));
+ timelineList.innerHTML=list.length?list.map(t=>`<div class="timeline-item"><time>${fmtTime(t.time)}</time><div class="node"></div><div><h4>${t.title}</h4><p>${statusLabel(t.status)} • ${t.duration} دقيقة • ${t.project||'دون مشروع'}</p></div></div>`).join(''):'<div class="empty">لا توجد أحداث مجدولة.</div>';
+}
+function renderTicker(){
+ const list=tasks.filter(t=>t.status!=='done').sort((a,b)=>score(b)-score(a));
+ const items=(list.length?list:[{id:'',title:'لا توجد مهام معلقة',time:'--:--'}]);
+ tickerInner.innerHTML=[...items,...items].map(t=>`<div class="ticker-item" data-id="${t.id}"><b>${t.time}</b> ${t.title}</div>`).join('');
+ tickerInner.querySelectorAll('[data-id]').forEach(el=>{if(el.dataset.id)el.onclick=()=>openDetail(el.dataset.id)});
+}
+function metric(label,value){return `<div class="metric-line"><span>${label}</span><div class="bar"><span style="width:${value}%"></span></div><strong>${value}%</strong></div>`}
+function reportData(period=reportPeriod.value){
+ const days=period==='month'?30:7,cutoff=Date.now()-days*86400000;
+ const scoped=tasks.filter(t=>new Date(t.createdAt||0).getTime()>=cutoff);
+ const base=scoped.length?scoped:tasks;
+ const completion=Math.round(base.filter(t=>t.status==='done').length/Math.max(1,base.length)*100);
+ const timing=Math.round(base.filter(t=>t.status==='done'||minutesRemaining(t)>=0).length/Math.max(1,base.leng
