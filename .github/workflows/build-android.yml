@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -19,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Reconstruct application entry file
-        run: cat source/index.part.* > index.html
+        run: npm run prepare:index
 
       - name: Verify reconstructed HTML
         run: |
